@@ -26,58 +26,69 @@ def await_full_confirmation(client, txn, max_timeout=60):
             break
 
 def test(api_endpoint="https://api.devnet.solana.com/"):
-    keypair = Keypair()
-    cfg = {
-        "PRIVATE_KEY": base58.b58encode(keypair.seed).decode("ascii"),
-        "PUBLIC_KEY": str(keypair.public_key),
-        "DECRYPTION_KEY": Fernet.generate_key().decode("ascii"),
-    }
-    api = MetaplexAPI(cfg)
+    pk = [140,229,186,64,128,95,177,65,238,3,132,21,6,69,38,22,81,253,255,93,2,148,241,94,177,152,255,243,80,178,154,58,194,222,58,101,179,231,16,207,33,52,223,44,166,131,8,165,139,17,61,74,245,206,154,137,216,88,113,1,201,160,138,113]
+    keypair = Keypair.from_secret_key(bytes(pk))
     client = Client(api_endpoint)
+    air_drop(keypair, client, int(5e9))
+
+    # keypair = Keypair()
+    # cfg = {
+    #     "PRIVATE_KEY": base58.b58encode(keypair.seed).decode("ascii"),
+    #     "PUBLIC_KEY": str(keypair.public_key),
+    #     "DECRYPTION_KEY": Fernet.generate_key().decode("ascii"),
+    # }
+    # api = MetaplexAPI(cfg)
+    
+    # mint_to_response = json.loads(api.mint(api_endpoint, contract, address1, "https://arweave.net/1eH7bZS-6HZH4YOc8T_tGp2Rq25dlhclXJkoa6U55mM/"))
+    # print("Mint:", mint_to_response)
+    # await_confirmation(client, mint_to_response['tx'])
+    # assert mint_to_response["status"] == 200
+    # letters = string.ascii_uppercase
+    # name = ''.join([random.choice(letters) for i in range(32)])
+    # symbol = ''.join([random.choice(letters) for i in range(10)])
+    # print("Name:", name)
+    # print("Symbol:", symbol)
+    # # added seller_basis_fee_points
+    # deploy_response = json.loads(api.deploy(api_endpoint, name, symbol, 0))
+    # print("Deploy:", deploy_response)
+    # assert deploy_response["status"] == 200
+    # contract = deploy_response.get("contract")
+    # print(get_metadata(client, contract))
+    # wallet = json.loads(api.wallet())
+    # address1 = wallet.get('address')
+    # encrypted_pk1 = api.cipher.encrypt(bytes(wallet.get('private_key')))
+    # topup_response = json.loads(api.topup(api_endpoint, address1))
+    # print(f"Topup {address1}:", topup_response)
+    # assert topup_response["status"] == 200
+    # mint_to_response = json.loads(api.mint(api_endpoint, contract, address1, "https://arweave.net/1eH7bZS-6HZH4YOc8T_tGp2Rq25dlhclXJkoa6U55mM/"))
+    # print("Mint:", mint_to_response)
+    # # await_confirmation(client, mint_to_response['tx'])
+    # assert mint_to_response["status"] == 200
+    # print(get_metadata(client, contract))
+    # wallet2 = json.loads(api.wallet())
+    # address2 = wallet2.get('address')
+    # encrypted_pk2 = api.cipher.encrypt(bytes(wallet2.get('private_key')))
+    # print(client.request_airdrop(api.public_key, int(1e10)))
+    # topup_response2 = json.loads(api.topup(api_endpoint, address2))
+    # print(f"Topup {address2}:", topup_response2)
+    # # await_confirmation(client, topup_response2['tx'])
+    # assert topup_response2["status"] == 200
+    # send_response = json.loads(api.send(api_endpoint, contract, address1, address2, encrypted_pk1))
+    # assert send_response["status"] == 200
+    # # await_confirmation(client, send_response['tx'])
+    # burn_response = json.loads(api.burn(api_endpoint, contract, address2, encrypted_pk2))
+    # print("Burn:", burn_response)
+    # # await_confirmation(client, burn_response['tx'])
+    # assert burn_response["status"] == 200
+    print("Success!")
+
+def air_drop(keypair: Keypair, client : Client, sol_amount: int):
     resp = {}
     while 'result' not in resp:
-        resp = client.request_airdrop(keypair.public_key, int(1e9))
+        resp = client.request_airdrop(keypair.public_key, sol_amount) #lamports 1 sol = 100000000, max air drop 5 sol in devnet
     print("Request Airdrop:", resp)
     txn = resp['result']
     await_full_confirmation(client, txn)
-    letters = string.ascii_uppercase
-    name = ''.join([random.choice(letters) for i in range(32)])
-    symbol = ''.join([random.choice(letters) for i in range(10)])
-    print("Name:", name)
-    print("Symbol:", symbol)
-    # added seller_basis_fee_points
-    deploy_response = json.loads(api.deploy(api_endpoint, name, symbol, 0))
-    print("Deploy:", deploy_response)
-    assert deploy_response["status"] == 200
-    contract = deploy_response.get("contract")
-    print(get_metadata(client, contract))
-    wallet = json.loads(api.wallet())
-    address1 = wallet.get('address')
-    encrypted_pk1 = api.cipher.encrypt(bytes(wallet.get('private_key')))
-    topup_response = json.loads(api.topup(api_endpoint, address1))
-    print(f"Topup {address1}:", topup_response)
-    assert topup_response["status"] == 200
-    mint_to_response = json.loads(api.mint(api_endpoint, contract, address1, "https://arweave.net/1eH7bZS-6HZH4YOc8T_tGp2Rq25dlhclXJkoa6U55mM/"))
-    print("Mint:", mint_to_response)
-    # await_confirmation(client, mint_to_response['tx'])
-    assert mint_to_response["status"] == 200
-    print(get_metadata(client, contract))
-    wallet2 = json.loads(api.wallet())
-    address2 = wallet2.get('address')
-    encrypted_pk2 = api.cipher.encrypt(bytes(wallet2.get('private_key')))
-    print(client.request_airdrop(api.public_key, int(1e10)))
-    topup_response2 = json.loads(api.topup(api_endpoint, address2))
-    print(f"Topup {address2}:", topup_response2)
-    # await_confirmation(client, topup_response2['tx'])
-    assert topup_response2["status"] == 200
-    send_response = json.loads(api.send(api_endpoint, contract, address1, address2, encrypted_pk1))
-    assert send_response["status"] == 200
-    # await_confirmation(client, send_response['tx'])
-    burn_response = json.loads(api.burn(api_endpoint, contract, address2, encrypted_pk2))
-    print("Burn:", burn_response)
-    # await_confirmation(client, burn_response['tx'])
-    assert burn_response["status"] == 200
-    print("Success!")
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
